@@ -196,25 +196,48 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
+  # BAZARR - Subtitle downloader
+  # WebUI: http://localhost:6767
+  # ===========================================================================
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/bazarr:/config
+      - ${MEDIA_DIR:-./media}:/data
+    ports:
+      - "${BAZARR_PORT:-6767}:6767"
+    networks:
+      - media-network
+    depends_on:
+      - radarr
+      - sonarr
+    restart: unless-stopped
+
+  # ===========================================================================
   # RECOMMENDARR - AI-powered media recommendations
   # Suggests movies/shows based on your Jellyfin library
   # WebUI: http://localhost:3232
   # GitHub: https://github.com/fingerthief/recommendarr
   # ===========================================================================
-  recommendarr:
-    image: ghcr.io/fingerthief/recommendarr:latest
-    container_name: recommendarr
-    environment:
-      - TZ=${TZ:-UTC}
-    volumes:
-      - ${CONFIG_DIR:-./config}/recommendarr:/app/config
-    ports:
-      - "${RECOMMENDARR_PORT:-3232}:3232"
-    networks:
-      - media-network
-    depends_on:
-      - jellyfin
-    restart: unless-stopped
+  # recommendarr:
+  #   image: ghcr.io/fingerthief/recommendarr:latest
+  #   container_name: recommendarr
+  #   environment:
+  #     - TZ=${TZ:-UTC}
+  #   volumes:
+  #     - ${CONFIG_DIR:-./config}/recommendarr:/app/config
+  #   ports:
+  #     - "${RECOMMENDARR_PORT:-3232}:3232"
+  #   networks:
+  #     - media-network
+  #   depends_on:
+  #     - jellyfin
+  #   restart: unless-stopped
 
 # =============================================================================
 # NETWORKS
