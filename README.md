@@ -13,6 +13,9 @@ A self-hosted media ecosystem combining automated downloading, media management,
 | [Sonarr](https://sonarr.tv) | TV show automation | 8989 |
 | [Jellyseerr](https://github.com/Fallenbagel/jellyseerr) | Media request portal | 5055 |
 | [Jellyfin](https://jellyfin.org) | Media server / streaming | 8096 |
+| [Bazarr](https://github.com/morpheus65535/bazarr) | Subtitle downloader | 6767 |
+| [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) | Cloudflare bypass helper | 8191 |
+| [Jackett](https://github.com/Jackett/Jackett) | Indexer proxy | 9117 |
 | [Recommendarr](https://github.com/fingerthief/recommendarr) | AI-powered recommendations | 3232 |
 
 ---
@@ -28,19 +31,19 @@ A self-hosted media ecosystem combining automated downloading, media management,
 │  │                                                      │   │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐           │   │
 │  │  │ Prowlarr │  │  Radarr  │  │  Sonarr  │           │   │
-│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘           │   │
-│  │       │(indexers)   │(movies)      │(tv)             │   │
-│  │       └─────────────┼──────────────┘                 │   │
-│  │                     │                                │   │
-│  │  ┌──────────┐  ┌────▼─────┐  ┌──────────────────┐  │   │
+│  │  │ +Jackett │  └────┬─────┘  └────┬─────┘           │   │
+│  │  └────┬─────┘       │(movies)      │(tv)             │   │
+│  │       │(indexers)   └─────────────┼─────────────────┘   │
+│  │       │                           │                     │
+│  │  ┌────▼─────┐  ┌────▼─────┐  ┌──────────────────┐  │   │
 │  │  │Jellyseerr│  │ Gluetun  │  │     Jellyfin     │  │   │
 │  │  │ (seerr)  │  │  (VPN)   │  │  (media server)  │  │   │
-│  │  └──────────┘  └────┬─────┘  └──────────────────┘  │   │
-│  │                     │                                │   │
-│  │               ┌─────▼──────┐  ┌──────────────────┐  │   │
-│  │               │qBittorrent │  │  Recommendarr    │  │   │
-│  │               │(VPN tunnel)│  │  (AI recs)       │  │   │
-│  │               └────────────┘  └──────────────────┘  │   │
+│  │  └──────────┘  └────┬─────┘  └────┬─────────────┘  │   │
+│  │                     │              │                 │   │
+│  │               ┌─────▼──────┐  ┌────▼─────┐  ┌─────┐ │   │
+│  │               │qBittorrent │  │  Bazarr  │  │ Rec │ │   │
+│  │               │(VPN tunnel)│  │ (subs)   │  │ (AI)│ │   │
+│  │               └────────────┘  └──────────┘  └─────┘ │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                                                             │
 │  ./media/                    ./config/                      │
@@ -233,6 +236,9 @@ Once running, access each service at:
 | Sonarr | http://localhost:8989 | Set on first run |
 | Jellyseerr | http://localhost:5055 | Set on first run |
 | Jellyfin | http://localhost:8096 | Set on first run |
+| Bazarr | http://localhost:6767 | Set on first run |
+| Jackett | http://localhost:9117 | Set on first run |
+| FlareSolverr | http://localhost:8191 | — |
 | Recommendarr | http://localhost:3232 | Set on first run |
 
 > **Important:** Change the default qBittorrent password immediately after first login.
@@ -292,6 +298,27 @@ Once running, access each service at:
 3. Configure your preferred AI provider (OpenAI, Ollama, etc.) and API key.
 4. Recommendarr will analyse your Jellyfin library and provide personalised suggestions.
 
+### Bazarr
+1. Open http://localhost:6767 and set up an admin account.
+2. **Settings → Apps**: Add Radarr and Sonarr.
+   - Radarr: URL `http://radarr:7878`, API key from Radarr.
+   - Sonarr: URL `http://sonarr:8989`, API key from Sonarr.
+   - Paths: `/data/movies` and `/data/tv`.
+3. **Settings → Subtitles**: Add providers like OpenSubtitles (with credentials).
+4. **Settings → Languages**: Create profiles (e.g., English) and assign to series/movies.
+5. **Settings → Options**: Enable automatic search/download/scan.
+
+### FlareSolverr
+- No UI setup needed; it runs as a helper for Jackett.
+- Accessible at http://localhost:8191 for status checks.
+
+### Jackett
+1. Open http://localhost:9117 and set up an admin account.
+2. **System → FlareSolverr**: Enable and set URL to `http://flaresolverr:8191`.
+3. **Indexers**: Add indexers (e.g., 1337x, TorrentGalaxyClone).
+4. Test each indexer to ensure it works with FlareSolverr.
+5. In Prowlarr, add Torznab indexers using Jackett's feed URLs.
+
 ---
 
 ## Directory Structure
@@ -311,6 +338,9 @@ media-stack/
 │   ├── sonarr/
 │   ├── jellyseerr/
 │   ├── jellyfin/
+│   ├── bazarr/
+│   ├── jackett/
+│   ├── flaresolverr/
 │   └── recommendarr/
 └── media/                  # All media and downloads
     ├── movies/             # Radarr-managed movies
@@ -339,6 +369,11 @@ docker compose logs -f
 
 # View logs for one service
 docker compose logs -f jellyfin
+
+# View logs for subtitle/indexer services
+docker compose logs -f bazarr
+docker compose logs -f jackett
+docker compose logs -f flaresolverr
 
 # Pull latest images and recreate containers
 docker compose pull
