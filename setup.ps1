@@ -41,7 +41,7 @@ foreach ($dir in $dirs) {
 # -----------------------------------------------------------------------------
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"
-    Info ".env created — open it and fill in your VPN credentials and paths."
+    Info ".env created - open it and fill in your VPN credentials and paths."
 } else {
     Warning ".env already exists, skipping copy."
 }
@@ -64,11 +64,12 @@ if (-not (Get-Command "docker" -ErrorAction SilentlyContinue)) {
 Write-Host ""
 Info "Setup complete!"
 Write-Host ""
+Info "Setup complete!"
+Write-Host ""
 Write-Host "  Next steps:" -ForegroundColor Cyan
-Write-Host "  1. Edit .env  — add your VPN credentials and adjust paths/ports"
-Write-Host "  2. docker compose up -d   — start all services"
+Write-Host "  1. Edit .env  - add your VPN credentials and adjust paths/ports"
+Write-Host "  2. docker compose up -d   - start all services"
 Write-Host "  3. Open the service URLs listed in README.md"
 Write-Host ""
-Write-Host "  Windows tip: For best performance, store your media on a drive" -ForegroundColor Yellow
-Write-Host "  formatted as NTFS and use absolute paths in .env (e.g. D:/media)." -ForegroundColor Yellow
+Write-Host '  Windows tip: For best performance, store your media on a drive formatted as NTFS and use absolute paths in .env (e.g. D:/media).' -ForegroundColor Yellow
 Write-Host ""
