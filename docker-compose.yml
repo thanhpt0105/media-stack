@@ -1,0 +1,228 @@
+# =============================================================================
+# Media Stack - Docker Compose
+# =============================================================================
+# Prerequisites:
+#   - Copy .env.example to .env and fill in your values
+#   - Run setup.sh (Linux/macOS) or setup.ps1 (Windows) first
+#   - Start: docker compose up -d
+#   - Stop:  docker compose down
+# =============================================================================
+
+services:
+
+  # ===========================================================================
+  # GLUETUN - VPN client (tunnels qBittorrent traffic)
+  # Docs: https://github.com/qdm12/gluetun-wiki
+  # ===========================================================================
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      # qBittorrent WebUI (accessible via the VPN container)
+      - "${QBIT_PORT:-8080}:8080"
+      # Optional: HTTP proxy (can be used to route browser traffic through VPN)
+      - "8888:8888"
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE:-wireguard}
+      # --- OpenVPN (only needed if VPN_TYPE=openvpn) ---
+      - OPENVPN_USER=${VPN_USER:-}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD:-}
+      # --- WireGuard (only needed if VPN_TYPE=wireguard) ---
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY:-}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES:-}
+      # --- Server selection ---
+      - SERVER_REGIONS=${VPN_REGIONS:-}
+      - SERVER_COUNTRIES=${VPN_COUNTRIES:-}
+      # --- Firewall kill-switch ---
+      - FIREWALL_OUTBOUND_SUBNETS=172.20.0.0/16
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/gluetun:/gluetun
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # QBITTORRENT - Torrent client
+  # All traffic routed through Gluetun VPN
+  # WebUI: http://localhost:8080  (default credentials: admin / adminadmin)
+  # ===========================================================================
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    # Share network namespace with gluetun so all traffic goes through VPN
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=${TORRENTING_PORT:-6881}
+    volumes:
+      - ${CONFIG_DIR:-./config}/qbittorrent:/config
+      # Mount the same /data root as other services for hardlink support
+      - ${MEDIA_DIR:-./media}:/data
+    depends_on:
+      - gluetun
+    restart: unless-stopped
+
+  # ===========================================================================
+  # PROWLARR - Indexer manager
+  # Feeds indexers/trackers to Radarr & Sonarr
+  # WebUI: http://localhost:9696
+  # ===========================================================================
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/prowlarr:/config
+    ports:
+      - "${PROWLARR_PORT:-9696}:9696"
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # RADARR - Movie collection manager
+  # Monitors, downloads, and organises movies automatically
+  # WebUI: http://localhost:7878
+  # ===========================================================================
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/radarr:/config
+      # Single /data mount enables hardlinks between downloads and movies
+      - ${MEDIA_DIR:-./media}:/data
+    ports:
+      - "${RADARR_PORT:-7878}:7878"
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # SONARR - TV show collection manager
+  # Monitors, downloads, and organises TV shows automatically
+  # WebUI: http://localhost:8989
+  # ===========================================================================
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/sonarr:/config
+      # Single /data mount enables hardlinks between downloads and tv
+      - ${MEDIA_DIR:-./media}:/data
+    ports:
+      - "${SONARR_PORT:-8989}:8989"
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # JELLYSEERR - Media request management
+  # Users request movies/shows; auto-forwards to Radarr/Sonarr
+  # WebUI: http://localhost:5055
+  # ===========================================================================
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - TZ=${TZ:-UTC}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ${CONFIG_DIR:-./config}/jellyseerr:/app/config
+    ports:
+      - "${JELLYSEERR_PORT:-5055}:5055"
+    networks:
+      - media-network
+    depends_on:
+      - jellyfin
+      - radarr
+      - sonarr
+    restart: unless-stopped
+
+  # ===========================================================================
+  # JELLYFIN - Open-source media server
+  # Streams movies and TV shows to any device
+  # WebUI: http://localhost:8096
+  # ===========================================================================
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+      # Optional: set the public-facing URL for external access
+      # - JELLYFIN_PublishedServerUrl=${JELLYFIN_URL:-}
+    volumes:
+      - ${CONFIG_DIR:-./config}/jellyfin:/config
+      # Single /data mount: movies at /data/movies, TV at /data/tv
+      - ${MEDIA_DIR:-./media}:/data
+    ports:
+      - "${JELLYFIN_PORT:-8096}:8096"
+      - "${JELLYFIN_HTTPS_PORT:-8920}:8920"
+    # Uncomment for hardware-accelerated transcoding:
+    # --- Intel / AMD (Linux) ---
+    # devices:
+    #   - /dev/dri:/dev/dri
+    # --- NVIDIA (Linux) ---
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # RECOMMENDARR - AI-powered media recommendations
+  # Suggests movies/shows based on your Jellyfin library
+  # WebUI: http://localhost:3232
+  # GitHub: https://github.com/fingerthief/recommendarr
+  # ===========================================================================
+  recommendarr:
+    image: ghcr.io/fingerthief/recommendarr:latest
+    container_name: recommendarr
+    environment:
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/recommendarr:/app/config
+    ports:
+      - "${RECOMMENDARR_PORT:-3232}:3232"
+    networks:
+      - media-network
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  media-network:
+    driver: bridge
+    name: media-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
