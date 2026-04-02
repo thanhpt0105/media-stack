@@ -196,6 +196,26 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
+  # SABNZBD - Usenet download client
+  # WebUI: http://localhost:8085
+  # ===========================================================================
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_DIR:-./config}/sabnzbd:/config
+      - ${MEDIA_DIR:-./media}:/data
+    ports:
+      - "${SABNZBD_PORT:-8085}:8080"
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
   # BAZARR - Subtitle downloader
   # WebUI: http://localhost:6767
   # ===========================================================================

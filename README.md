@@ -29,21 +29,21 @@ A self-hosted media ecosystem combining automated downloading, media management,
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                   media-network                      │   │
 │  │                                                      │   │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐           │   │
-│  │  │ Prowlarr │  │  Radarr  │  │  Sonarr  │           │   │
-│  │  │ +Jackett │  └────┬─────┘  └────┬─────┘           │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐            │   │
+│  │  │ Prowlarr │  │  Radarr  │  │  Sonarr  │            │   │
+│  │  │ +Jackett │  └────┬─────┘  └────┬─────┘            │   │
 │  │  └────┬─────┘       │(movies)      │(tv)             │   │
-│  │       │(indexers)   └─────────────┼─────────────────┘   │
-│  │       │                           │                     │
-│  │  ┌────▼─────┐  ┌────▼─────┐  ┌──────────────────┐  │   │
-│  │  │Jellyseerr│  │ Gluetun  │  │     Jellyfin     │  │   │
-│  │  │ (seerr)  │  │  (VPN)   │  │  (media server)  │  │   │
-│  │  └──────────┘  └────┬─────┘  └────┬─────────────┘  │   │
+│  │       │(indexers)   └─────────────┼──────────────────│   │
+│  │       │                           │                  │   │
+│  │  ┌────▼─────┐  ┌────▼─────┐  ┌──────────────────┐    │   │
+│  │  │Jellyseerr│  │ Gluetun  │  │     Jellyfin     │    │   │
+│  │  │ (seerr)  │  │  (VPN)   │  │  (media server)  │    │   │
+│  │  └──────────┘  └────┬─────┘  └────┬─────────────┘    │   │
 │  │                     │              │                 │   │
-│  │               ┌─────▼──────┐  ┌────▼─────┐  ┌─────┐ │   │
-│  │               │qBittorrent │  │  Bazarr  │  │ Rec │ │   │
-│  │               │(VPN tunnel)│  │ (subs)   │  │ (AI)│ │   │
-│  │               └────────────┘  └──────────┘  └─────┘ │   │
+│  │               ┌─────▼──────┐  ┌────▼─────┐  ┌─────┐  │   │
+│  │               │qBittorrent │  │  Bazarr  │  │ Rec │  │   │
+│  │               │(VPN tunnel)│  │ (subs)   │  │ (AI)│  │   │
+│  │               └────────────┘  └──────────┘  └─────┘  │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                                                             │
 │  ./media/                    ./config/                      │
@@ -237,6 +237,7 @@ Once running, access each service at:
 | Jellyseerr | http://localhost:5055 | Set on first run |
 | Jellyfin | http://localhost:8096 | Set on first run |
 | Bazarr | http://localhost:6767 | Set on first run |
+| SABnzbd | http://localhost:8085 | Set on first run |
 | Jackett | http://localhost:9117 | Set on first run |
 | FlareSolverr | http://localhost:8191 | — |
 | Recommendarr | http://localhost:3232 | Set on first run |
@@ -278,6 +279,15 @@ Once running, access each service at:
    - Host: `gluetun`
    - Port: `8080`
    - Category: `sonarr`
+
+### SABnzbd (optional, for Usenet indexers like NZBGeek)
+1. Open http://localhost:8085 and complete first-run setup.
+2. Configure your Usenet provider server host/port/credentials in SABnzbd.
+3. In Sonarr, add SABnzbd as a download client:
+   - Host: `sabnzbd`
+   - Port: `8080`
+   - API Key: copy from SABnzbd Settings
+4. In Prowlarr, if using NZBGeek, ensure NZBGeek is set as a Usenet indexer and the app sync profile includes Sonarr.
 
 ### Jellyfin
 1. Open http://localhost:8096 and complete the setup wizard.
