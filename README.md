@@ -106,7 +106,11 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 .\setup.ps1
 ```
 
-The script creates the required directory tree and copies `.env.example` → `.env`.
+The script creates the required directory tree, copies `.env.example` → `.env`, and (if missing) copies reverse-proxy templates into `config/`:
+
+- `Caddyfile.sample` → `config/caddy/Caddyfile`
+- `nginx.conf.sample` → `config/nginx/nginx.conf`
+- `media-stack.nginx.conf.sample` → `config/nginx/conf.d/media-stack.conf`
 
 ### 3. Configure Environment Variables
 
@@ -246,6 +250,43 @@ Once running, access each service at:
 
 ---
 
+## Local Hostnames (Optional)
+
+You can access services using local hostnames such as `sonarr.test` instead of `localhost:8989` by running an optional reverse proxy.
+
+Two proxy options are included in `docker-compose.yml` as profiles:
+
+- Caddy profile:
+   - Start: `docker compose --profile caddy up -d`
+   - Runtime config file: `config/caddy/Caddyfile`
+   - Tracked template: `Caddyfile.sample`
+- Nginx profile:
+   - Start: `docker compose --profile nginx up -d`
+   - Runtime config files: `config/nginx/nginx.conf` and `config/nginx/conf.d/media-stack.conf`
+   - Tracked templates: `nginx.conf.sample` and `media-stack.nginx.conf.sample`
+
+> Run only one proxy profile at a time because both use port 80.
+
+### Windows hosts file entries
+
+Add these lines to `C:/Windows/System32/drivers/etc/hosts`:
+
+```txt
+127.0.0.1 sonarr.test
+127.0.0.1 radarr.test
+127.0.0.1 prowlarr.test
+127.0.0.1 jellyfin.test
+127.0.0.1 jellyseerr.test
+127.0.0.1 bazarr.test
+127.0.0.1 sabnzbd.test
+127.0.0.1 jackett.test
+127.0.0.1 qbittorrent.test
+```
+
+Then run `ipconfig /flushdns` and open any mapped hostname in your browser.
+
+---
+
 ## Post-Installation Configuration
 
 ### qBittorrent
@@ -338,6 +379,9 @@ media-stack/
 ├── docker-compose.yml      # All service definitions
 ├── .env.example            # Environment template (copy to .env)
 ├── .env                    # Your local config (NOT committed to git)
+├── Caddyfile.sample        # Tracked Caddy reverse-proxy template
+├── nginx.conf.sample       # Tracked Nginx main config template
+├── media-stack.nginx.conf.sample # Tracked Nginx vhost template
 ├── setup.sh                # Bootstrap script (Linux/macOS)
 ├── setup.ps1               # Bootstrap script (Windows)
 ├── config/                 # Per-service configuration (auto-created)

@@ -281,6 +281,43 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
+  # CADDY - Reverse proxy (optional)
+  # Host routing for local domains such as sonarr.test
+  # Start with: docker compose --profile caddy up -d
+  # ===========================================================================
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    profiles: ["caddy"]
+    ports:
+      - "80:80"
+    volumes:
+      - ${CONFIG_DIR:-./config}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CONFIG_DIR:-./config}/caddy/data:/data
+      - ${CONFIG_DIR:-./config}/caddy/config:/config
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # NGINX - Reverse proxy (optional)
+  # Host routing for local domains such as sonarr.test
+  # Start with: docker compose --profile nginx up -d
+  # ===========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    profiles: ["nginx"]
+    ports:
+      - "80:80"
+    volumes:
+      - ${CONFIG_DIR:-./config}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${CONFIG_DIR:-./config}/nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
   # RECOMMENDARR - AI-powered media recommendations
   # Suggests movies/shows based on your Jellyfin library
   # WebUI: http://localhost:3232

@@ -26,6 +26,14 @@ dirs=(
   "config/sonarr"
   "config/jellyseerr"
   "config/jellyfin"
+  "config/bazarr"
+  "config/sabnzbd"
+  "config/jackett"
+  "config/caddy"
+  "config/caddy/data"
+  "config/caddy/config"
+  "config/nginx"
+  "config/nginx/conf.d"
   "config/recommendarr"
   "media/movies"
   "media/tv"
@@ -46,6 +54,24 @@ if [ ! -f ".env" ]; then
   info ".env created — open it and fill in your VPN credentials and paths."
 else
   warning ".env already exists, skipping copy."
+fi
+
+# -----------------------------------------------------------------------------
+# 2b. Copy reverse proxy sample configs (if missing)
+# -----------------------------------------------------------------------------
+if [ -f "Caddyfile.sample" ] && [ ! -f "config/caddy/Caddyfile" ]; then
+  cp Caddyfile.sample config/caddy/Caddyfile
+  info "  Copied proxy template: config/caddy/Caddyfile"
+fi
+
+if [ -f "nginx.conf.sample" ] && [ ! -f "config/nginx/nginx.conf" ]; then
+  cp nginx.conf.sample config/nginx/nginx.conf
+  info "  Copied proxy template: config/nginx/nginx.conf"
+fi
+
+if [ -f "media-stack.nginx.conf.sample" ] && [ ! -f "config/nginx/conf.d/media-stack.conf" ]; then
+  cp media-stack.nginx.conf.sample config/nginx/conf.d/media-stack.conf
+  info "  Copied proxy template: config/nginx/conf.d/media-stack.conf"
 fi
 
 # -----------------------------------------------------------------------------

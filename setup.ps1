@@ -24,6 +24,14 @@ $dirs = @(
     "config\sonarr",
     "config\jellyseerr",
     "config\jellyfin",
+    "config\bazarr",
+    "config\sabnzbd",
+    "config\jackett",
+    "config\caddy",
+    "config\caddy\data",
+    "config\caddy\config",
+    "config\nginx",
+    "config\nginx\conf.d",
     "config\recommendarr",
     "media\movies",
     "media\tv",
@@ -44,6 +52,22 @@ if (-not (Test-Path ".env")) {
     Info ".env created - open it and fill in your VPN credentials and paths."
 } else {
     Warning ".env already exists, skipping copy."
+}
+
+# -----------------------------------------------------------------------------
+# 2b. Copy reverse proxy sample configs (if missing)
+# -----------------------------------------------------------------------------
+$proxyTemplates = @(
+    @{ Source = "Caddyfile.sample"; Destination = "config\caddy\Caddyfile" },
+    @{ Source = "nginx.conf.sample"; Destination = "config\nginx\nginx.conf" },
+    @{ Source = "media-stack.nginx.conf.sample"; Destination = "config\nginx\conf.d\media-stack.conf" }
+)
+
+foreach ($template in $proxyTemplates) {
+    if ((Test-Path $template.Source) -and -not (Test-Path $template.Destination)) {
+        Copy-Item $template.Source $template.Destination
+        Info "  Copied proxy template: $($template.Destination)"
+    }
 }
 
 # -----------------------------------------------------------------------------
