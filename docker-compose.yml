@@ -281,6 +281,28 @@ services:
     restart: unless-stopped
 
   # ===========================================================================
+  # SUWAYOMI-SERVER - Manga reader server with extension sources
+  # Tachiyomi-compatible manga reader with hundreds of online sources
+  # WebUI: http://localhost:4567
+  # Docs: https://suwayomi.org
+  # GitHub: https://github.com/Suwayomi/Suwayomi-Server
+  # ===========================================================================
+  suwayomi:
+    image: ghcr.io/suwayomi/suwayomi-server:stable
+    container_name: suwayomi
+    environment:
+      - TZ=${TZ:-UTC}
+      - BACKUP_INTERVAL=1
+    volumes:
+      - ${CONFIG_DIR:-./config}/suwayomi/tachidesk:/home/suwayomi/.local/share/Tachidesk
+      - ${MEDIA_DIR:-./media}/comics:/home/suwayomi/.local/share/Tachidesk/local
+    ports:
+      - "${SUWAYOMI_PORT:-4567}:4567"
+    networks:
+      - media-network
+    restart: unless-stopped
+
+  # ===========================================================================
   # RECOMMENDARR - AI-powered media recommendations
   # Suggests movies/shows based on your Jellyfin library
   # WebUI: http://localhost:3232
