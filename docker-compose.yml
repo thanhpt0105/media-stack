@@ -9,6 +9,19 @@
 # =============================================================================
 
 services:
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - '80:80'   # Standard HTTP
+      - '443:443' # Standard HTTPS
+      - '81:81'   # Admin Dashboard
+    volumes:
+      - ${CONFIG_DIR:-./config}/npm/data:/data
+      - ${CONFIG_DIR:-./config}/npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - media-network
 
   # ===========================================================================
   # GLUETUN - VPN client (tunnels qBittorrent traffic)
@@ -85,8 +98,6 @@ services:
       - TZ=${TZ:-UTC}
     volumes:
       - ${CONFIG_DIR:-./config}/prowlarr:/config
-    ports:
-      - "${PROWLARR_PORT:-9696}:9696"
     networks:
       - media-network
     restart: unless-stopped
@@ -107,8 +118,6 @@ services:
       - ${CONFIG_DIR:-./config}/radarr:/config
       # Single /data mount enables hardlinks between downloads and movies
       - ${MEDIA_DIR:-./media}:/data
-    ports:
-      - "${RADARR_PORT:-7878}:7878"
     networks:
       - media-network
     restart: unless-stopped
@@ -129,8 +138,6 @@ services:
       - ${CONFIG_DIR:-./config}/sonarr:/config
       # Single /data mount enables hardlinks between downloads and tv
       - ${MEDIA_DIR:-./media}:/data
-    ports:
-      - "${SONARR_PORT:-8989}:8989"
     networks:
       - media-network
     restart: unless-stopped
@@ -148,8 +155,6 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ${CONFIG_DIR:-./config}/jellyseerr:/app/config
-    ports:
-      - "${JELLYSEERR_PORT:-5055}:5055"
     networks:
       - media-network
     depends_on:
@@ -176,9 +181,6 @@ services:
       - ${CONFIG_DIR:-./config}/jellyfin:/config
       # Single /data mount: movies at /data/movies, TV at /data/tv
       - ${MEDIA_DIR:-./media}:/data
-    ports:
-      - "${JELLYFIN_PORT:-8096}:8096"
-      - "${JELLYFIN_HTTPS_PORT:-8920}:8920"
     # Uncomment for hardware-accelerated transcoding:
     # --- Intel / AMD (Linux) ---
     # devices:
@@ -209,8 +211,6 @@ services:
     volumes:
       - ${CONFIG_DIR:-./config}/sabnzbd:/config
       - ${MEDIA_DIR:-./media}:/data
-    ports:
-      - "${SABNZBD_PORT:-8085}:8080"
     networks:
       - media-network
     restart: unless-stopped
@@ -229,8 +229,6 @@ services:
     volumes:
       - ${CONFIG_DIR:-./config}/bazarr:/config
       - ${MEDIA_DIR:-./media}:/data
-    ports:
-      - "${BAZARR_PORT:-6767}:6767"
     networks:
       - media-network
     depends_on:
@@ -249,8 +247,6 @@ services:
       - LOG_LEVEL=info
       - ALLOWED_HOSTS=*
       - MAX_WORKERS=5
-    ports:
-      - "8191:8191"
     networks:
       - media-network
     restart: unless-stopped
@@ -272,8 +268,6 @@ services:
     volumes:
       - ${CONFIG_DIR:-./config}/jackett:/config
       - ${MEDIA_DIR:-./media}:/downloads
-    ports:
-      - "9117:9117"
     depends_on:
       - flaresolverr
     networks:
@@ -296,8 +290,6 @@ services:
     volumes:
       - ${CONFIG_DIR:-./config}/suwayomi/tachidesk:/home/suwayomi/.local/share/Tachidesk
       - ${MEDIA_DIR:-./media}/comics:/home/suwayomi/.local/share/Tachidesk/local
-    ports:
-      - "${SUWAYOMI_PORT:-4567}:4567"
     networks:
       - media-network
     restart: unless-stopped

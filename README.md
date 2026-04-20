@@ -17,6 +17,7 @@ A self-hosted media ecosystem combining automated downloading, media management,
 | [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) | Cloudflare bypass helper | 8191 |
 | [Jackett](https://github.com/Jackett/Jackett) | Indexer proxy | 9117 |
 | [Recommendarr](https://github.com/fingerthief/recommendarr) | AI-powered recommendations | 3232 |
+| [Nginx Proxy Manager](https://nginxproxymanager.com/) | Reverse proxy and TLS management | 80, 81, 443 |
 
 ---
 
@@ -231,6 +232,7 @@ Once running, access each service at:
 | Service | URL | Default Credentials |
 |---|---|---|
 | qBittorrent | http://localhost:8080 | `admin` / `adminadmin` |
+| Nginx Proxy Manager | http://localhost:81 | `admin@example.com` / `changeme` |
 | Prowlarr | http://localhost:9696 | Set on first run |
 | Radarr | http://localhost:7878 | Set on first run |
 | Sonarr | http://localhost:8989 | Set on first run |
@@ -243,6 +245,8 @@ Once running, access each service at:
 | Recommendarr | http://localhost:3232 | Set on first run |
 
 > **Important:** Change the default qBittorrent password immediately after first login.
+
+> **Important:** Change the default Nginx Proxy Manager admin email/password immediately after first login.
 
 ---
 

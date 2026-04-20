@@ -18,13 +18,20 @@ Info "Creating directory structure..."
 
 $dirs = @(
     "config\gluetun",
+    "config\npm\data",
+    "config\npm\letsencrypt",
     "config\qbittorrent",
     "config\prowlarr",
     "config\radarr",
     "config\sonarr",
+    "config\sabnzbd",
+    "config\bazarr",
+    "config\jackett",
     "config\jellyseerr",
     "config\jellyfin",
+    "config\suwayomi\tachidesk",
     "config\recommendarr",
+    "media\comics",
     "media\movies",
     "media\tv",
     "media\downloads\complete",
@@ -52,7 +59,7 @@ if (-not (Test-Path ".env")) {
 if (-not (Get-Command "docker" -ErrorAction SilentlyContinue)) {
     Warning "Docker not found. Install Docker Desktop: https://docs.docker.com/desktop/windows/"
 } else {
-    $dockerRunning = docker info 2>&1
+    docker info | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Warning "Docker Desktop is not running. Start it before running 'docker compose up -d'."
     } else {
@@ -61,8 +68,6 @@ if (-not (Get-Command "docker" -ErrorAction SilentlyContinue)) {
 }
 
 # -----------------------------------------------------------------------------
-Write-Host ""
-Info "Setup complete!"
 Write-Host ""
 Info "Setup complete!"
 Write-Host ""
